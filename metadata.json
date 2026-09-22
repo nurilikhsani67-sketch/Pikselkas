@@ -1,0 +1,6 @@
+{
+  "name": "PikselKas - Keuangan Pribadi",
+  "description": "Aplikasi pencatatan keuangan pribadi bertema pixel art ceria dengan pelacakan outstanding piutang & utang, tanda lunas terbayar, pos anggaran, dan arus kas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
