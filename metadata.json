@@ -1,6 +1,6 @@
 {
   "name": "PikselKas - Keuangan Pribadi",
-  "description": "Aplikasi pencatatan keuangan pribadi bertema pixel art ceria dengan input portofolio investasi (saham, emas, obligasi, dll), pelacakan outstanding piutang & utang, pos anggaran, dan arus kas.",
+  "description": "Aplikasi pencatatan keuangan pribadi bertema pixel art ceria dengan tabungan rekening bank, input portofolio investasi, pelacakan outstanding utang & piutang, serta pos anggaran.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

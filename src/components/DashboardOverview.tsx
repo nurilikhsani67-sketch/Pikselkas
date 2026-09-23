@@ -1,22 +1,24 @@
 import React, { useState, useMemo } from 'react';
-import { CategoryPot, Receivable, Debt, Transaction, Investment, ActiveTab } from '../types';
-import { formatRupiah, formatDateIndo, getReceivableStatusInfo, getDebtStatusInfo, getInvestmentTypeInfo, calculateProfitLoss } from '../utils/formatters';
+import { CategoryPot, Receivable, Debt, Transaction, Investment, SavingsAccount, ActiveTab } from '../types';
+import { formatRupiah, formatDateIndo, getReceivableStatusInfo, getDebtStatusInfo, getInvestmentTypeInfo, calculateProfitLoss, getBankBadgeStyle } from '../utils/formatters';
 import { retroSound } from '../utils/sound';
 import { PixelIcon } from './PixelIcon';
 import { PixelMascot } from './PixelMascot';
-import { PlusCircle, UserPlus, FolderPlus, ArrowUpRight, ArrowDownLeft, AlertTriangle, CreditCard, CheckCircle2, TrendingUp, Coins } from 'lucide-react';
+import { PlusCircle, UserPlus, FolderPlus, ArrowUpRight, ArrowDownLeft, AlertTriangle, CreditCard, CheckCircle2, TrendingUp, Coins, Building2, PiggyBank } from 'lucide-react';
 
 interface DashboardOverviewProps {
   pots: CategoryPot[];
   receivables: Receivable[];
   debts: Debt[];
   investments?: Investment[];
+  savings?: SavingsAccount[];
   transactions: Transaction[];
   onNavigateTab: (tab: ActiveTab) => void;
   onOpenNewTransaction: () => void;
   onOpenNewReceivable: () => void;
   onOpenNewDebt?: () => void;
   onOpenNewInvestment?: () => void;
+  onOpenNewSavings?: () => void;
   onOpenNewPot: () => void;
   onPayReceivable: (receivable: Receivable) => void;
   onPayDebt?: (debt: Debt) => void;
@@ -27,12 +29,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   receivables,
   debts,
   investments = [],
+  savings = [],
   transactions,
   onNavigateTab,
   onOpenNewTransaction,
   onOpenNewReceivable,
   onOpenNewDebt,
   onOpenNewInvestment,
+  onOpenNewSavings,
   onOpenNewPot,
   onPayReceivable,
   onPayDebt,
@@ -49,6 +53,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const netBalance = totalIncome - totalExpense;
+
+  // Savings calculation
+  const totalSavingsBalance = useMemo(() => {
+    return savings.reduce((acc, curr) => acc + curr.balance, 0);
+  }, [savings]);
 
   // Active investments calculation
   const activeInvestments = useMemo(() => {
@@ -281,7 +290,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </div>
 
       {/* Quick Action Pixel Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
         <button
           onClick={() => {
             retroSound.playCoin();
@@ -291,6 +300,21 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         >
           <PlusCircle size={15} className="text-black shrink-0" />
           <span className="truncate">+ TRANSAKSI</span>
+        </button>
+
+        <button
+          onClick={() => {
+            retroSound.playClick();
+            if (onOpenNewSavings) {
+              onOpenNewSavings();
+            } else {
+              onNavigateTab('savings');
+            }
+          }}
+          className="pixel-btn-action bg-sky-500 hover:bg-sky-400 text-black font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
+        >
+          <Building2 size={15} className="shrink-0 text-black" />
+          <span className="truncate">+ TABUNGAN</span>
         </button>
 
         <button
@@ -339,11 +363,81 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             retroSound.playClick();
             onOpenNewPot();
           }}
-          className="pixel-btn-action bg-sky-600 hover:bg-sky-500 text-white font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 col-span-2 sm:col-span-1"
+          className="pixel-btn-action bg-slate-700 hover:bg-slate-600 text-white font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 col-span-2 sm:col-span-1"
         >
           <FolderPlus size={15} className="shrink-0" />
           <span className="truncate">+ POS BARU</span>
         </button>
+      </div>
+
+      {/* Tabungan Bank Overview Banner */}
+      <div className="bg-[#1e293b] border-4 border-black p-4 pixel-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-black/50 pb-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-sky-600/30 border border-sky-500 flex items-center justify-center text-sky-400">
+              <span className="text-base">🏦</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-pixel text-xs text-slate-200">
+                  TABUNGAN & SIMPANAN BANK
+                </h3>
+                <span className="font-pixel text-[9px] bg-sky-500/20 text-sky-300 border border-sky-500/40 px-1.5 py-0.5">
+                  {savings.length} REKENING
+                </span>
+              </div>
+              <div className="text-xs font-sans-clean mt-0.5 text-slate-400">
+                Total Simpanan Aman: <strong className="text-sky-300 font-pixel text-[11px]">{formatRupiah(totalSavingsBalance)}</strong>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigateTab('savings')}
+            className="pixel-btn-action bg-[#0f172a] hover:bg-[#334155] border-2 border-black font-pixel text-[10px] text-sky-400 px-3 py-1.5 self-start sm:self-auto"
+          >
+            LIHAT SEMUA TABUNGAN &rarr;
+          </button>
+        </div>
+
+        {savings.length === 0 ? (
+          <div className="text-center py-4 text-slate-400 text-xs font-sans-clean flex items-center justify-center gap-2">
+            <span>Belum ada rekening tabungan bank terdaftar.</span>
+            <button
+              onClick={() => onNavigateTab('savings')}
+              className="text-sky-400 font-pixel text-[10px] underline"
+            >
+              + Input Tabungan Baru
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+            {savings.slice(0, 4).map((acc) => {
+              const bankStyle = getBankBadgeStyle(acc.bankName);
+              return (
+                <div
+                  key={acc.id}
+                  onClick={() => onNavigateTab('savings')}
+                  className="bg-[#0f172a] border border-black hover:border-sky-400/60 p-2.5 cursor-pointer transition-all"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`font-pixel text-[8px] px-1.5 py-0.2 border ${bankStyle.bg} ${bankStyle.text}`}>
+                      {acc.bankName}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono truncate max-w-[110px]">
+                      {acc.accountNumber || 'Tanpa No.Rek'}
+                    </span>
+                  </div>
+                  <div className="font-pixel text-[11px] text-white truncate">{acc.accountName}</div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-sans-clean mt-1">
+                    <span>Saldo:</span>
+                    <span className="text-sky-300 font-pixel text-[9px]">{formatRupiah(acc.balance)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Portfolio Quick Overview Banner */}

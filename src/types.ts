@@ -4,6 +4,33 @@ export type ReceivableStatus = 'unpaid' | 'partial' | 'paid' | 'overdue';
 
 export type DebtStatus = 'unpaid' | 'partial' | 'paid' | 'overdue';
 
+export type SavingsCategory = 'emergency_fund' | 'daily' | 'dream_goal' | 'family' | 'investment_buffer' | 'other';
+
+export interface SavingsLog {
+  id: string;
+  type: 'deposit' | 'withdraw'; // setor atau tarik
+  amount: number;
+  date: string; // YYYY-MM-DD
+  note?: string;
+}
+
+export interface SavingsAccount {
+  id: string;
+  bankName: string; // misal "BCA", "Bank Mandiri", "BRI", "BSI", "Bank Jago", "SeaBank"
+  accountName: string; // misal "Tabungan Dana Darurat", "Tabungan Beli Mobil", "Rekening Gaji"
+  accountNumber?: string; // misal "527-019-8821"
+  accountHolder?: string; // misal "Nuril Ikhsani"
+  balance: number; // nominal uang yang ditabung saat ini (Rp)
+  targetAmount?: number; // target nominal tabungan (Rp)
+  category: SavingsCategory;
+  color?: 'emerald' | 'amber' | 'rose' | 'sky' | 'indigo' | 'purple' | 'teal';
+  icon?: string;
+  notes?: string;
+  logs: SavingsLog[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export type InvestmentType = 
   | 'saham'
   | 'emas'
@@ -105,6 +132,6 @@ export interface Debt {
   createdAt: string;
 }
 
-export type ActiveTab = 'dashboard' | 'receivables' | 'debts' | 'investments' | 'pots' | 'transactions';
+export type ActiveTab = 'dashboard' | 'savings' | 'investments' | 'receivables' | 'debts' | 'pots' | 'transactions';
 
 export type AuthMode = 'login' | 'register' | 'forgot_password';

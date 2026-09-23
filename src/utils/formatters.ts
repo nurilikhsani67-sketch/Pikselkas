@@ -1,4 +1,4 @@
-import { ReceivableStatus, DebtStatus, InvestmentType } from '../types';
+import { ReceivableStatus, DebtStatus, InvestmentType, SavingsCategory } from '../types';
 
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -253,6 +253,128 @@ export function calculateProfitLoss(initial: number, current: number) {
       : isLoss 
       ? 'bg-rose-950/80 border-rose-500 text-rose-300' 
       : 'bg-slate-800 border-slate-600 text-slate-300',
+  };
+}
+
+export function getSavingsCategoryInfo(category: SavingsCategory) {
+  switch (category) {
+    case 'emergency_fund':
+      return {
+        label: 'Dana Darurat',
+        icon: '🛡️',
+        color: 'bg-emerald-600 text-white border-emerald-400',
+        badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50',
+      };
+    case 'daily':
+      return {
+        label: 'Operasional & Gaji',
+        icon: '💳',
+        color: 'bg-sky-600 text-white border-sky-400',
+        badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-500/50',
+      };
+    case 'dream_goal':
+      return {
+        label: 'Target & Impian',
+        icon: '✨',
+        color: 'bg-amber-500 text-black border-amber-300',
+        badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/50',
+      };
+    case 'family':
+      return {
+        label: 'Keluarga & Anak',
+        icon: '👨‍👩‍👧',
+        color: 'bg-purple-600 text-white border-purple-400',
+        badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/50',
+      };
+    case 'investment_buffer':
+      return {
+        label: 'Buffer Investasi',
+        icon: '📈',
+        color: 'bg-indigo-600 text-white border-indigo-400',
+        badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/50',
+      };
+    case 'other':
+    default:
+      return {
+        label: 'Tabungan Lainnya',
+        icon: '🐷',
+        color: 'bg-slate-600 text-white border-slate-400',
+        badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/50',
+      };
+  }
+}
+
+export function getBankBadgeStyle(bankName: string) {
+  const norm = bankName.toLowerCase();
+  if (norm.includes('bca') || norm.includes('blu')) {
+    return {
+      bg: 'bg-blue-600',
+      text: 'text-white',
+      border: 'border-blue-400',
+      logoText: 'BCA',
+    };
+  }
+  if (norm.includes('mandiri')) {
+    return {
+      bg: 'bg-amber-600',
+      text: 'text-white',
+      border: 'border-amber-400',
+      logoText: 'MANDIRI',
+    };
+  }
+  if (norm.includes('bri')) {
+    return {
+      bg: 'bg-blue-700',
+      text: 'text-white',
+      border: 'border-blue-300',
+      logoText: 'BRI',
+    };
+  }
+  if (norm.includes('bni')) {
+    return {
+      bg: 'bg-teal-600',
+      text: 'text-white',
+      border: 'border-teal-300',
+      logoText: 'BNI',
+    };
+  }
+  if (norm.includes('bsi') || norm.includes('syariah')) {
+    return {
+      bg: 'bg-emerald-700',
+      text: 'text-white',
+      border: 'border-emerald-300',
+      logoText: 'BSI',
+    };
+  }
+  if (norm.includes('jago')) {
+    return {
+      bg: 'bg-amber-500',
+      text: 'text-black',
+      border: 'border-amber-300',
+      logoText: 'JAGO',
+    };
+  }
+  if (norm.includes('seabank')) {
+    return {
+      bg: 'bg-orange-600',
+      text: 'text-white',
+      border: 'border-orange-400',
+      logoText: 'SEABANK',
+    };
+  }
+  if (norm.includes('jenius') || norm.includes('btpn')) {
+    return {
+      bg: 'bg-cyan-600',
+      text: 'text-white',
+      border: 'border-cyan-400',
+      logoText: 'JENIUS',
+    };
+  }
+  return {
+    bg: 'bg-slate-700',
+    text: 'text-slate-100',
+    border: 'border-slate-500',
+    logoText: bankName.slice(0, 4).toUpperCase(),
   };
 }
 

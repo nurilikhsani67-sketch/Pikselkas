@@ -1,4 +1,4 @@
-import { User, CategoryPot, Transaction, Receivable, Debt, Investment } from '../types';
+import { User, CategoryPot, Transaction, Receivable, Debt, Investment, SavingsAccount } from '../types';
 
 const USERS_KEY = 'pikselkas_users_v1';
 const CURRENT_USER_KEY = 'pikselkas_current_user_v1';
@@ -7,6 +7,7 @@ const TRANSACTIONS_KEY = 'pikselkas_transactions_v1';
 const RECEIVABLES_KEY = 'pikselkas_receivables_v1';
 const DEBTS_KEY = 'pikselkas_debts_v1';
 const INVESTMENTS_KEY = 'pikselkas_investments_v1';
+const SAVINGS_KEY = 'pikselkas_savings_v1';
 const RESET_TOKENS_KEY = 'pikselkas_reset_tokens_v1';
 
 // Initial Seed Data
@@ -314,6 +315,108 @@ const DEFAULT_INVESTMENTS: Investment[] = [
   },
 ];
 
+const DEFAULT_SAVINGS: SavingsAccount[] = [
+  {
+    id: 'sav-1',
+    bankName: 'BCA (Bank Central Asia)',
+    accountName: 'Rekening Operasional & Gaji',
+    accountNumber: '527-019-8821',
+    accountHolder: 'Nuril Ikhsani',
+    balance: 14500000,
+    targetAmount: 20000000,
+    category: 'daily',
+    color: 'sky',
+    icon: '💳',
+    notes: 'Rekening utama payroll dan kebutuhan transaksi harian',
+    logs: [
+      {
+        id: 'slog-1',
+        type: 'deposit',
+        amount: 9200000,
+        date: '2026-09-01',
+        note: 'Transfer gaji bulan September',
+      },
+      {
+        id: 'slog-2',
+        type: 'withdraw',
+        amount: 2500000,
+        date: '2026-09-05',
+        note: 'Alokasi ke pos belanja dapur',
+      },
+    ],
+    createdAt: '2026-01-10T08:00:00Z',
+  },
+  {
+    id: 'sav-2',
+    bankName: 'BSI (Bank Syariah Indonesia)',
+    accountName: 'Tabungan Dana Darurat',
+    accountNumber: '714-883-9901',
+    accountHolder: 'Nuril Ikhsani',
+    balance: 25000000,
+    targetAmount: 30000000,
+    category: 'emergency_fund',
+    color: 'emerald',
+    icon: '🛡️',
+    notes: 'Dana darurat 6 bulan pengeluaran wajib, tidak disentuh kecuali kondisi darurat',
+    logs: [
+      {
+        id: 'slog-3',
+        type: 'deposit',
+        amount: 2000000,
+        date: '2026-08-01',
+        note: 'Setoran rutin dana proteksi',
+      },
+    ],
+    createdAt: '2026-02-15T10:00:00Z',
+  },
+  {
+    id: 'sav-3',
+    bankName: 'Bank Jago',
+    accountName: 'Kantong Liburan & Wishlist',
+    accountNumber: '109-882-7712',
+    accountHolder: 'Nuril Ikhsani',
+    balance: 4200000,
+    targetAmount: 8000000,
+    category: 'dream_goal',
+    color: 'amber',
+    icon: '✈️',
+    notes: 'Tabungan impian untuk liburan akhir tahun ke Bromo & Malang',
+    logs: [
+      {
+        id: 'slog-4',
+        type: 'deposit',
+        amount: 1200000,
+        date: '2026-08-28',
+        note: 'Sisa uang saku & bonus project',
+      },
+    ],
+    createdAt: '2026-03-20T14:30:00Z',
+  },
+  {
+    id: 'sav-4',
+    bankName: 'Bank Mandiri',
+    accountName: 'Tabungan Qurban & Ibadah',
+    accountNumber: '137-001-5529',
+    accountHolder: 'Nuril Ikhsani',
+    balance: 3500000,
+    targetAmount: 4500000,
+    category: 'family',
+    color: 'indigo',
+    icon: '🐑',
+    notes: 'Tabungan qurban Idul Adha tahun depan',
+    logs: [
+      {
+        id: 'slog-5',
+        type: 'deposit',
+        amount: 1000000,
+        date: '2026-09-02',
+        note: 'Cicilan tabungan qurban ke-3',
+      },
+    ],
+    createdAt: '2026-04-10T11:00:00Z',
+  },
+];
+
 const DEFAULT_TRANSACTIONS: Transaction[] = [
   {
     id: 'trx-1',
@@ -501,6 +604,14 @@ export function saveInvestments(investments: Investment[]): void {
   writeLocal(INVESTMENTS_KEY, investments);
 }
 
+export function getSavings(): SavingsAccount[] {
+  return readLocal<SavingsAccount[]>(SAVINGS_KEY, DEFAULT_SAVINGS);
+}
+
+export function saveSavings(savings: SavingsAccount[]): void {
+  writeLocal(SAVINGS_KEY, savings);
+}
+
 export function getTransactions(): Transaction[] {
   return readLocal<Transaction[]>(TRANSACTIONS_KEY, DEFAULT_TRANSACTIONS);
 }
@@ -516,6 +627,7 @@ export function resetToDemoData(): void {
   writeLocal(RECEIVABLES_KEY, DEFAULT_RECEIVABLES);
   writeLocal(DEBTS_KEY, DEFAULT_DEBTS);
   writeLocal(INVESTMENTS_KEY, DEFAULT_INVESTMENTS);
+  writeLocal(SAVINGS_KEY, DEFAULT_SAVINGS);
   writeLocal(TRANSACTIONS_KEY, DEFAULT_TRANSACTIONS);
 }
 

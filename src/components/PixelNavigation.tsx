@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActiveTab } from '../types';
 import { retroSound } from '../utils/sound';
-import { LayoutDashboard, Users, CreditCard, TrendingUp, Layers, ArrowLeftRight } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, CreditCard, TrendingUp, Layers, ArrowLeftRight } from 'lucide-react';
 
 interface PixelNavigationProps {
   activeTab: ActiveTab;
@@ -11,6 +11,7 @@ interface PixelNavigationProps {
   unpaidDebtsCount?: number;
   overdueDebtsCount?: number;
   investmentsCount?: number;
+  savingsCount?: number;
 }
 
 export const PixelNavigation: React.FC<PixelNavigationProps> = ({
@@ -21,6 +22,7 @@ export const PixelNavigation: React.FC<PixelNavigationProps> = ({
   unpaidDebtsCount = 0,
   overdueDebtsCount = 0,
   investmentsCount = 0,
+  savingsCount = 0,
 }) => {
   const tabs = [
     {
@@ -28,6 +30,14 @@ export const PixelNavigation: React.FC<PixelNavigationProps> = ({
       label: 'Ringkasan',
       sublabel: 'Dashboard',
       icon: <LayoutDashboard size={18} />,
+    },
+    {
+      id: 'savings' as ActiveTab,
+      label: 'Tabungan',
+      sublabel: 'Rekening Bank',
+      icon: <Building2 size={18} />,
+      badge: savingsCount > 0 ? `${savingsCount} REKENING` : null,
+      badgeColor: 'bg-sky-400 text-black',
     },
     {
       id: 'investments' as ActiveTab,

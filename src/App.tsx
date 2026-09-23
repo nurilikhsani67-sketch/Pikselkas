@@ -5,6 +5,7 @@ import {
   Receivable, 
   Debt,
   Investment,
+  SavingsAccount,
   Transaction, 
   ActiveTab,
   ReceivableStatus,
@@ -22,6 +23,8 @@ import {
   saveDebts,
   getInvestments,
   saveInvestments,
+  getSavings,
+  saveSavings,
   getTransactions, 
   saveTransactions,
   resetToDemoData
@@ -30,6 +33,7 @@ import { retroSound } from './utils/sound';
 import { PixelHeader } from './components/PixelHeader';
 import { PixelNavigation } from './components/PixelNavigation';
 import { DashboardOverview } from './components/DashboardOverview';
+import { SavingsManager } from './components/SavingsManager';
 import { ReceivablesManager } from './components/ReceivablesManager';
 import { DebtsManager } from './components/DebtsManager';
 import { InvestmentsManager } from './components/InvestmentsManager';
@@ -45,6 +49,7 @@ export default function App() {
   const [receivables, setReceivables] = useState<Receivable[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [savings, setSavings] = useState<SavingsAccount[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // Modal triggering states across components
@@ -62,6 +67,7 @@ export default function App() {
     setReceivables(getReceivables());
     setDebts(getDebts());
     setInvestments(getInvestments());
+    setSavings(getSavings());
     setTransactions(getTransactions());
   }, []);
 
@@ -84,6 +90,11 @@ export default function App() {
   const updateInvestments = (newInvs: Investment[]) => {
     setInvestments(newInvs);
     saveInvestments(newInvs);
+  };
+
+  const updateSavings = (newSavings: SavingsAccount[]) => {
+    setSavings(newSavings);
+    saveSavings(newSavings);
   };
 
   const updateTransactions = (newTrxs: Transaction[]) => {
@@ -109,6 +120,7 @@ export default function App() {
     setReceivables(getReceivables());
     setDebts(getDebts());
     setInvestments(getInvestments());
+    setSavings(getSavings());
     setTransactions(getTransactions());
     alert('Data keuangan telah direset ke setelan awal demo!');
   };
@@ -338,6 +350,127 @@ export default function App() {
     }
   };
 
+  // Savings Handlers
+  const handleAddSavings = (
+    savingsData: Omit<SavingsAccount, 'id' | 'createdAt' | 'logs'>,
+    deductFromPot?: boolean
+  ) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const initialLog = savingsData.balance > 0 ? [{
+      id: `slog-${Date.now()}`,
+      type: 'deposit' as const,
+      amount: savingsData.balance,
+      date: todayStr,
+      note: 'Setoran saldo awal tabungan',
+    }] : [];
+
+    const newSavingsAcc: SavingsAccount = {
+      ...savingsData,
+      id: `sav-${Date.now()}`,
+      logs: initialLog,
+      createdAt: new Date().toISOString(),
+    };
+    updateSavings([newSavingsAcc, ...savings]);
+
+    // Optional: deduct from cash transaction
+    if (deductFromPot && savingsData.balance > 0) {
+      const targetPotId = pots.find(p => p.name.toLowerCase().includes('tabungan'))?.id || pots[0]?.id;
+      if (targetPotId) {
+        const newTrx: Transaction = {
+          id: `trx-${Date.now()}`,
+          type: 'expense',
+          amount: savingsData.balance,
+          categoryPotId: targetPotId,
+          date: todayStr,
+          title: `Alokasi Tabungan: ${savingsData.bankName}`,
+          note: `Penempatan saldo awal ${savingsData.accountName} (${savingsData.bankName})`,
+          createdAt: new Date().toISOString(),
+        };
+        updateTransactions([newTrx, ...transactions]);
+      }
+    }
+  };
+
+  const handleEditSavings = (updated: SavingsAccount) => {
+    updateSavings(savings.map((s) => (s.id === updated.id ? updated : s)));
+  };
+
+  const handleDeleteSavings = (id: string) => {
+    updateSavings(savings.filter((s) => s.id !== id));
+  };
+
+  const handleDepositSavings = (id: string, amount: number, note?: string, potId?: string) => {
+    const target = savings.find((s) => s.id === id);
+    if (!target) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const newLog = {
+      id: `slog-${Date.now()}`,
+      type: 'deposit' as const,
+      amount,
+      date: todayStr,
+      note: note || 'Setor tabungan',
+    };
+
+    const updated: SavingsAccount = {
+      ...target,
+      balance: target.balance + amount,
+      logs: [newLog, ...(target.logs || [])],
+      updatedAt: new Date().toISOString(),
+    };
+    updateSavings(savings.map((s) => (s.id === id ? updated : s)));
+
+    // Create expense transaction if synced with pot
+    if (potId) {
+      const newTrx: Transaction = {
+        id: `trx-${Date.now()}`,
+        type: 'expense',
+        amount,
+        categoryPotId: potId,
+        date: todayStr,
+        title: `Setor Tabungan: ${target.bankName}`,
+        note: note ? `Setor ke ${target.accountName}: ${note}` : `Setoran tabungan ke ${target.accountName}`,
+        createdAt: new Date().toISOString(),
+      };
+      updateTransactions([newTrx, ...transactions]);
+    }
+  };
+
+  const handleWithdrawSavings = (id: string, amount: number, note?: string, potId?: string) => {
+    const target = savings.find((s) => s.id === id);
+    if (!target) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const newLog = {
+      id: `slog-${Date.now()}`,
+      type: 'withdraw' as const,
+      amount,
+      date: todayStr,
+      note: note || 'Penarikan tabungan',
+    };
+
+    const updated: SavingsAccount = {
+      ...target,
+      balance: Math.max(0, target.balance - amount),
+      logs: [newLog, ...(target.logs || [])],
+      updatedAt: new Date().toISOString(),
+    };
+    updateSavings(savings.map((s) => (s.id === id ? updated : s)));
+
+    // Create income transaction if synced with pot
+    if (potId) {
+      const newTrx: Transaction = {
+        id: `trx-${Date.now()}`,
+        type: 'income',
+        amount,
+        categoryPotId: potId,
+        date: todayStr,
+        title: `Tarik Tabungan: ${target.bankName}`,
+        note: note ? `Penarikan dari ${target.accountName}: ${note}` : `Penarikan tabungan dari ${target.accountName}`,
+        createdAt: new Date().toISOString(),
+      };
+      updateTransactions([newTrx, ...transactions]);
+    }
+  };
+
   // Pots Handlers
   const handleAddPot = (newPotData: Omit<CategoryPot, 'id'>) => {
     const newPot: CategoryPot = {
@@ -422,6 +555,7 @@ export default function App() {
         unpaidDebtsCount={unpaidDebtsCount}
         overdueDebtsCount={overdueDebtsCount}
         investmentsCount={activeInvestmentsCount}
+        savingsCount={savings.length}
       />
 
       {/* Main Content Viewport */}
@@ -432,12 +566,16 @@ export default function App() {
             receivables={receivables}
             debts={debts}
             investments={investments}
+            savings={savings}
             transactions={transactions}
             onNavigateTab={setActiveTab}
             onOpenNewTransaction={() => {
               setSelectedPotForTrx(undefined);
               setActiveTab('transactions');
               setIsTrxModalOpen(true);
+            }}
+            onOpenNewSavings={() => {
+              setActiveTab('savings');
             }}
             onOpenNewInvestment={() => {
               setActiveTab('investments');
@@ -457,6 +595,18 @@ export default function App() {
             onPayDebt={(debt) => {
               setActiveTab('debts');
             }}
+          />
+        )}
+
+        {activeTab === 'savings' && (
+          <SavingsManager
+            savings={savings}
+            pots={pots}
+            onAddSavings={handleAddSavings}
+            onEditSavings={handleEditSavings}
+            onDeleteSavings={handleDeleteSavings}
+            onDepositSavings={handleDepositSavings}
+            onWithdrawSavings={handleWithdrawSavings}
           />
         )}
 
@@ -522,7 +672,7 @@ export default function App() {
       {/* Retro Footer */}
       <footer className="border-t-2 border-black/80 bg-[#0b1120] py-4 px-4 text-center text-xs text-slate-500 font-pixel">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>PIKSELKAS &bull; CATATAN KEUANGAN, INVESTASI, PIUTANG & UTANG</span>
+          <span>PIKSELKAS &bull; CATATAN KEUANGAN, TABUNGAN BANK, INVESTASI, PIUTANG & UTANG</span>
           <span className="text-amber-400/80">GAME OVER? TIDAK, KEUANGANMU AMAN! 🎮</span>
         </div>
       </footer>
