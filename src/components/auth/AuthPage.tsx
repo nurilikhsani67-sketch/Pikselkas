@@ -24,7 +24,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('nurilikhsani04@gmail.com');
-  const [loginPassword, setLoginPassword] = useState('password123');
+  const [loginPassword, setLoginPassword] = useState('Nurilikhsani123');
 
   // Register form
   const [regName, setRegName] = useState('');
