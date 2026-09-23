@@ -1,4 +1,4 @@
-import { ReceivableStatus, DebtStatus } from '../types';
+import { ReceivableStatus, DebtStatus, InvestmentType } from '../types';
 
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -145,6 +145,114 @@ export function getDebtStatusInfo(status: DebtStatus, dueDate: string, remaining
     textColor: 'text-orange-400',
     icon: '📋',
     description: `Tenggat pembayaran ${days} hari lagi`,
+  };
+}
+
+export function getInvestmentTypeInfo(type: InvestmentType) {
+  switch (type) {
+    case 'saham':
+      return {
+        label: 'Saham',
+        shortCode: 'STK',
+        icon: '📈',
+        color: 'bg-indigo-600 text-white border-indigo-400',
+        badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/50',
+        barColor: 'bg-indigo-500',
+        unitLabel: 'Lembar / Lot',
+      };
+    case 'emas':
+      return {
+        label: 'Emas Mulia',
+        shortCode: 'GLD',
+        icon: '🪙',
+        color: 'bg-amber-500 text-black border-amber-300',
+        badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/50',
+        barColor: 'bg-amber-400',
+        unitLabel: 'Gram',
+      };
+    case 'obligasi':
+      return {
+        label: 'Obligasi / SBN',
+        shortCode: 'BND',
+        icon: '📜',
+        color: 'bg-emerald-600 text-white border-emerald-400',
+        badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50',
+        barColor: 'bg-emerald-500',
+        unitLabel: 'Unit',
+      };
+    case 'reksadana':
+      return {
+        label: 'Reksadana',
+        shortCode: 'MFD',
+        icon: '📊',
+        color: 'bg-sky-600 text-white border-sky-400',
+        badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-500/50',
+        barColor: 'bg-sky-400',
+        unitLabel: 'Unit Penyertaan',
+      };
+    case 'kripto':
+      return {
+        label: 'Kripto',
+        shortCode: 'CRP',
+        icon: '⚡',
+        color: 'bg-purple-600 text-white border-purple-400',
+        badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/50',
+        barColor: 'bg-purple-500',
+        unitLabel: 'Koin / Token',
+      };
+    case 'deposito':
+      return {
+        label: 'Deposito',
+        shortCode: 'DPS',
+        icon: '🏦',
+        color: 'bg-teal-600 text-white border-teal-400',
+        badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-500/50',
+        barColor: 'bg-teal-400',
+        unitLabel: 'Bilyet / Rekening',
+      };
+    case 'properti':
+      return {
+        label: 'Properti',
+        shortCode: 'PRP',
+        icon: '🏠',
+        color: 'bg-orange-600 text-white border-orange-400',
+        badgeColor: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
+        barColor: 'bg-orange-400',
+        unitLabel: 'Aset',
+      };
+    case 'lainnya':
+    default:
+      return {
+        label: 'Lainnya',
+        shortCode: 'OTH',
+        icon: '💎',
+        color: 'bg-slate-600 text-white border-slate-400',
+        badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/50',
+        barColor: 'bg-slate-400',
+        unitLabel: 'Unit',
+      };
+  }
+}
+
+export function calculateProfitLoss(initial: number, current: number) {
+  const diff = current - initial;
+  const percentage = initial > 0 ? (diff / initial) * 100 : 0;
+  const isProfit = diff > 0;
+  const isLoss = diff < 0;
+  return {
+    diff,
+    percentage,
+    isProfit,
+    isLoss,
+    isEqual: diff === 0,
+    formattedDiff: (diff > 0 ? '+' : '') + formatRupiah(diff),
+    formattedPercent: (diff > 0 ? '+' : '') + percentage.toFixed(2) + '%',
+    colorClass: isProfit ? 'text-emerald-400' : isLoss ? 'text-rose-400' : 'text-slate-300',
+    badgeClass: isProfit 
+      ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300' 
+      : isLoss 
+      ? 'bg-rose-950/80 border-rose-500 text-rose-300' 
+      : 'bg-slate-800 border-slate-600 text-slate-300',
   };
 }
 

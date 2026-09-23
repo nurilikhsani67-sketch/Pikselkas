@@ -1,4 +1,4 @@
-import { User, CategoryPot, Transaction, Receivable, Debt } from '../types';
+import { User, CategoryPot, Transaction, Receivable, Debt, Investment } from '../types';
 
 const USERS_KEY = 'pikselkas_users_v1';
 const CURRENT_USER_KEY = 'pikselkas_current_user_v1';
@@ -6,6 +6,7 @@ const POTS_KEY = 'pikselkas_pots_v1';
 const TRANSACTIONS_KEY = 'pikselkas_transactions_v1';
 const RECEIVABLES_KEY = 'pikselkas_receivables_v1';
 const DEBTS_KEY = 'pikselkas_debts_v1';
+const INVESTMENTS_KEY = 'pikselkas_investments_v1';
 const RESET_TOKENS_KEY = 'pikselkas_reset_tokens_v1';
 
 // Initial Seed Data
@@ -250,6 +251,69 @@ const DEFAULT_DEBTS: Debt[] = [
   },
 ];
 
+const DEFAULT_INVESTMENTS: Investment[] = [
+  {
+    id: 'inv-1',
+    name: 'Bank Central Asia (BBCA)',
+    type: 'saham',
+    platform: 'Ajaib Sekuritas',
+    buyDate: '2026-05-10',
+    initialAmount: 6000000,
+    currentAmount: 6850000,
+    units: 6,
+    unitPrice: 1000000,
+    notes: 'Saham perbankan defensif tier-1 pembagi dividen rutin',
+    categoryPotId: 'pot-3',
+    status: 'active',
+    createdAt: '2026-05-10T09:30:00Z',
+  },
+  {
+    id: 'inv-2',
+    name: 'Logam Mulia Emas Antam 10g',
+    type: 'emas',
+    platform: 'Butik Emas Antam / Pegadaian',
+    buyDate: '2026-04-12',
+    initialAmount: 13200000,
+    currentAmount: 14850000,
+    units: 10,
+    unitPrice: 1320000,
+    notes: 'Aset safe-haven pelindung kekayaan dari inflasi',
+    categoryPotId: 'pot-3',
+    status: 'active',
+    createdAt: '2026-04-12T11:00:00Z',
+  },
+  {
+    id: 'inv-3',
+    name: 'Obligasi Negara Ritel ORI025',
+    type: 'obligasi',
+    platform: 'Bibit Investasi',
+    buyDate: '2026-02-20',
+    initialAmount: 10000000,
+    currentAmount: 10000000,
+    units: 10,
+    unitPrice: 1000000,
+    notes: 'Kupon tetap (fixed rate) 6.25% p.a dijamin 100% oleh UU Negara RI',
+    categoryPotId: 'pot-3',
+    status: 'active',
+    createdAt: '2026-02-20T14:15:00Z',
+  },
+  {
+    id: 'inv-4',
+    name: 'Sucorinvest Sharia Equity Fund',
+    type: 'reksadana',
+    platform: 'Bareksa',
+    buyDate: '2026-06-18',
+    initialAmount: 3500000,
+    currentAmount: 3820000,
+    units: 2450,
+    unitPrice: 1428,
+    notes: 'Reksadana saham syariah untuk target jangka panjang',
+    categoryPotId: 'pot-3',
+    status: 'active',
+    createdAt: '2026-06-18T10:00:00Z',
+  },
+];
+
 const DEFAULT_TRANSACTIONS: Transaction[] = [
   {
     id: 'trx-1',
@@ -429,6 +493,14 @@ export function saveDebts(debts: Debt[]): void {
   writeLocal(DEBTS_KEY, debts);
 }
 
+export function getInvestments(): Investment[] {
+  return readLocal<Investment[]>(INVESTMENTS_KEY, DEFAULT_INVESTMENTS);
+}
+
+export function saveInvestments(investments: Investment[]): void {
+  writeLocal(INVESTMENTS_KEY, investments);
+}
+
 export function getTransactions(): Transaction[] {
   return readLocal<Transaction[]>(TRANSACTIONS_KEY, DEFAULT_TRANSACTIONS);
 }
@@ -443,6 +515,7 @@ export function resetToDemoData(): void {
   writeLocal(POTS_KEY, DEFAULT_POTS);
   writeLocal(RECEIVABLES_KEY, DEFAULT_RECEIVABLES);
   writeLocal(DEBTS_KEY, DEFAULT_DEBTS);
+  writeLocal(INVESTMENTS_KEY, DEFAULT_INVESTMENTS);
   writeLocal(TRANSACTIONS_KEY, DEFAULT_TRANSACTIONS);
 }
 

@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
-import { CategoryPot, Receivable, Debt, Transaction, ActiveTab } from '../types';
-import { formatRupiah, formatDateIndo, getReceivableStatusInfo, getDebtStatusInfo } from '../utils/formatters';
+import React, { useState, useMemo } from 'react';
+import { CategoryPot, Receivable, Debt, Transaction, Investment, ActiveTab } from '../types';
+import { formatRupiah, formatDateIndo, getReceivableStatusInfo, getDebtStatusInfo, getInvestmentTypeInfo, calculateProfitLoss } from '../utils/formatters';
 import { retroSound } from '../utils/sound';
 import { PixelIcon } from './PixelIcon';
 import { PixelMascot } from './PixelMascot';
-import { PlusCircle, UserPlus, FolderPlus, ArrowUpRight, ArrowDownLeft, AlertTriangle, CreditCard, CheckCircle2 } from 'lucide-react';
+import { PlusCircle, UserPlus, FolderPlus, ArrowUpRight, ArrowDownLeft, AlertTriangle, CreditCard, CheckCircle2, TrendingUp, Coins } from 'lucide-react';
 
 interface DashboardOverviewProps {
   pots: CategoryPot[];
   receivables: Receivable[];
   debts: Debt[];
+  investments?: Investment[];
   transactions: Transaction[];
   onNavigateTab: (tab: ActiveTab) => void;
   onOpenNewTransaction: () => void;
   onOpenNewReceivable: () => void;
   onOpenNewDebt?: () => void;
+  onOpenNewInvestment?: () => void;
   onOpenNewPot: () => void;
   onPayReceivable: (receivable: Receivable) => void;
   onPayDebt?: (debt: Debt) => void;
@@ -24,11 +26,13 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   pots,
   receivables,
   debts,
+  investments = [],
   transactions,
   onNavigateTab,
   onOpenNewTransaction,
   onOpenNewReceivable,
   onOpenNewDebt,
+  onOpenNewInvestment,
   onOpenNewPot,
   onPayReceivable,
   onPayDebt,
@@ -45,6 +49,23 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     .reduce((acc, curr) => acc + curr.amount, 0);
 
   const netBalance = totalIncome - totalExpense;
+
+  // Active investments calculation
+  const activeInvestments = useMemo(() => {
+    return investments.filter((inv) => inv.status !== 'sold');
+  }, [investments]);
+
+  const totalInvestmentCurrent = useMemo(() => {
+    return activeInvestments.reduce((acc, curr) => acc + curr.currentAmount, 0);
+  }, [activeInvestments]);
+
+  const totalInvestmentInitial = useMemo(() => {
+    return activeInvestments.reduce((acc, curr) => acc + curr.initialAmount, 0);
+  }, [activeInvestments]);
+
+  const investmentPL = useMemo(() => {
+    return calculateProfitLoss(totalInvestmentInitial, totalInvestmentCurrent);
+  }, [totalInvestmentInitial, totalInvestmentCurrent]);
 
   // Active receivables (hak tagih kita)
   const outstandingReceivables = receivables
@@ -260,16 +281,31 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </div>
 
       {/* Quick Action Pixel Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5">
         <button
           onClick={() => {
             retroSound.playCoin();
             onOpenNewTransaction();
           }}
-          className="pixel-btn-action bg-emerald-600 hover:bg-emerald-500 text-black font-pixel text-[11px] sm:text-xs p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
+          className="pixel-btn-action bg-emerald-600 hover:bg-emerald-500 text-black font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
         >
-          <PlusCircle size={16} className="text-black" />
-          <span>+ TRANSAKSI</span>
+          <PlusCircle size={15} className="text-black shrink-0" />
+          <span className="truncate">+ TRANSAKSI</span>
+        </button>
+
+        <button
+          onClick={() => {
+            retroSound.playClick();
+            if (onOpenNewInvestment) {
+              onOpenNewInvestment();
+            } else {
+              onNavigateTab('investments');
+            }
+          }}
+          className="pixel-btn-action bg-indigo-600 hover:bg-indigo-500 text-white font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
+        >
+          <TrendingUp size={15} className="shrink-0" />
+          <span className="truncate">+ INVESTASI</span>
         </button>
 
         <button
@@ -281,10 +317,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               onNavigateTab('debts');
             }
           }}
-          className="pixel-btn-action bg-rose-600 hover:bg-rose-500 text-white font-pixel text-[11px] sm:text-xs p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
+          className="pixel-btn-action bg-rose-600 hover:bg-rose-500 text-white font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
         >
-          <CreditCard size={16} />
-          <span>+ CATAT UTANG</span>
+          <CreditCard size={15} className="shrink-0" />
+          <span className="truncate">+ UTANG</span>
         </button>
 
         <button
@@ -292,10 +328,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             retroSound.playClick();
             onOpenNewReceivable();
           }}
-          className="pixel-btn-action bg-[#f59e0b] hover:bg-amber-400 text-black font-pixel text-[11px] sm:text-xs p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
+          className="pixel-btn-action bg-[#f59e0b] hover:bg-amber-400 text-black font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 font-bold"
         >
-          <UserPlus size={16} className="text-black" />
-          <span>+ PIUTANG</span>
+          <UserPlus size={15} className="text-black shrink-0" />
+          <span className="truncate">+ PIUTANG</span>
         </button>
 
         <button
@@ -303,11 +339,84 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             retroSound.playClick();
             onOpenNewPot();
           }}
-          className="pixel-btn-action bg-sky-600 hover:bg-sky-500 text-white font-pixel text-[11px] sm:text-xs p-3 border-4 border-black flex items-center justify-center gap-1.5"
+          className="pixel-btn-action bg-sky-600 hover:bg-sky-500 text-white font-pixel text-[10px] sm:text-xs p-2.5 sm:p-3 border-4 border-black flex items-center justify-center gap-1.5 col-span-2 sm:col-span-1"
         >
-          <FolderPlus size={16} />
-          <span>+ POS BARU</span>
+          <FolderPlus size={15} className="shrink-0" />
+          <span className="truncate">+ POS BARU</span>
         </button>
+      </div>
+
+      {/* Portfolio Quick Overview Banner */}
+      <div className="bg-[#1e293b] border-4 border-black p-4 pixel-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-black/50 pb-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-indigo-600/30 border border-indigo-500 flex items-center justify-center text-indigo-400">
+              <span className="text-base">💎</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-pixel text-xs text-slate-200">
+                  PORTOFOLIO INVESTASI AKTIF
+                </h3>
+                <span className="font-pixel text-[9px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-1.5 py-0.5">
+                  {activeInvestments.length} ASET
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-sans-clean mt-0.5 text-slate-400">
+                <span>Nilai: <strong className="text-white font-pixel text-[11px]">{formatRupiah(totalInvestmentCurrent)}</strong></span>
+                <span>•</span>
+                <span>P&L: <strong className={`font-pixel text-[11px] ${investmentPL.colorClass}`}>{investmentPL.formattedDiff} ({investmentPL.formattedPercent})</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigateTab('investments')}
+            className="pixel-btn-action bg-[#0f172a] hover:bg-[#334155] border-2 border-black font-pixel text-[10px] text-amber-400 px-3 py-1.5 self-start sm:self-auto"
+          >
+            LIHAT PORTOFOLIO &rarr;
+          </button>
+        </div>
+
+        {activeInvestments.length === 0 ? (
+          <div className="text-center py-4 text-slate-400 text-xs font-sans-clean flex items-center justify-center gap-2">
+            <span>Belum ada aset investasi terdaftar.</span>
+            <button
+              onClick={() => onNavigateTab('investments')}
+              className="text-amber-400 font-pixel text-[10px] underline"
+            >
+              + Input Investasi Pertama
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+            {activeInvestments.slice(0, 4).map((inv) => {
+              const info = getInvestmentTypeInfo(inv.type);
+              const pl = calculateProfitLoss(inv.initialAmount, inv.currentAmount);
+              return (
+                <div
+                  key={inv.id}
+                  onClick={() => onNavigateTab('investments')}
+                  className="bg-[#0f172a] border border-black hover:border-amber-400/60 p-2.5 cursor-pointer transition-all"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`font-pixel text-[8px] px-1.5 py-0.2 border ${info.badgeColor}`}>
+                      {info.icon} {info.label.toUpperCase()}
+                    </span>
+                    <span className={`font-pixel text-[8px] ${pl.colorClass}`}>
+                      {pl.formattedPercent}
+                    </span>
+                  </div>
+                  <div className="font-pixel text-[11px] text-white truncate">{inv.name}</div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-sans-clean mt-1">
+                    <span>Valuasi:</span>
+                    <span className="text-amber-300 font-pixel text-[9px]">{formatRupiah(inv.currentAmount)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Two Column Layout: Utang & Piutang vs Ringkasan Pos */}

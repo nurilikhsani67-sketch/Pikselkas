@@ -4,6 +4,7 @@ import {
   CategoryPot, 
   Receivable, 
   Debt,
+  Investment,
   Transaction, 
   ActiveTab,
   ReceivableStatus,
@@ -19,6 +20,8 @@ import {
   saveReceivables, 
   getDebts,
   saveDebts,
+  getInvestments,
+  saveInvestments,
   getTransactions, 
   saveTransactions,
   resetToDemoData
@@ -29,6 +32,7 @@ import { PixelNavigation } from './components/PixelNavigation';
 import { DashboardOverview } from './components/DashboardOverview';
 import { ReceivablesManager } from './components/ReceivablesManager';
 import { DebtsManager } from './components/DebtsManager';
+import { InvestmentsManager } from './components/InvestmentsManager';
 import { FinancialPotsManager } from './components/FinancialPotsManager';
 import { TransactionsManager } from './components/TransactionsManager';
 import { AuthPage } from './components/auth/AuthPage';
@@ -40,6 +44,7 @@ export default function App() {
   const [pots, setPots] = useState<CategoryPot[]>([]);
   const [receivables, setReceivables] = useState<Receivable[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // Modal triggering states across components
@@ -56,6 +61,7 @@ export default function App() {
     setPots(getCategoryPots());
     setReceivables(getReceivables());
     setDebts(getDebts());
+    setInvestments(getInvestments());
     setTransactions(getTransactions());
   }, []);
 
@@ -73,6 +79,11 @@ export default function App() {
   const updateDebts = (newDebts: Debt[]) => {
     setDebts(newDebts);
     saveDebts(newDebts);
+  };
+
+  const updateInvestments = (newInvs: Investment[]) => {
+    setInvestments(newInvs);
+    saveInvestments(newInvs);
   };
 
   const updateTransactions = (newTrxs: Transaction[]) => {
@@ -97,6 +108,7 @@ export default function App() {
     setPots(getCategoryPots());
     setReceivables(getReceivables());
     setDebts(getDebts());
+    setInvestments(getInvestments());
     setTransactions(getTransactions());
     alert('Data keuangan telah direset ke setelan awal demo!');
   };
@@ -248,6 +260,84 @@ export default function App() {
     updateTransactions([newTrx, ...transactions]);
   };
 
+  // Investments Handlers
+  const handleAddInvestment = (
+    invData: Omit<Investment, 'id' | 'createdAt' | 'status'>,
+    deductFromPot?: boolean
+  ) => {
+    const newInv: Investment = {
+      ...invData,
+      id: `inv-${Date.now()}`,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+    };
+    updateInvestments([newInv, ...investments]);
+
+    // If user checked "catat pengeluaran kas otomatis"
+    if (deductFromPot && invData.categoryPotId) {
+      const newTrx: Transaction = {
+        id: `trx-${Date.now()}`,
+        type: 'expense',
+        amount: invData.initialAmount,
+        categoryPotId: invData.categoryPotId,
+        date: invData.buyDate,
+        title: `Beli Investasi: ${invData.name}`,
+        note: `Modal beli instrumen ${invData.type} via ${invData.platform || 'Sekuritas/Toko'}`,
+        createdAt: new Date().toISOString(),
+      };
+      updateTransactions([newTrx, ...transactions]);
+    }
+  };
+
+  const handleEditInvestment = (updatedInv: Investment) => {
+    updateInvestments(investments.map((inv) => (inv.id === updatedInv.id ? updatedInv : inv)));
+  };
+
+  const handleDeleteInvestment = (id: string) => {
+    updateInvestments(investments.filter((inv) => inv.id !== id));
+  };
+
+  const handleUpdateInvestmentValuation = (id: string, newCurrentAmount: number) => {
+    const target = investments.find((i) => i.id === id);
+    if (!target) return;
+    const updated: Investment = {
+      ...target,
+      currentAmount: newCurrentAmount,
+      updatedAt: new Date().toISOString(),
+    };
+    updateInvestments(investments.map((i) => (i.id === id ? updated : i)));
+  };
+
+  const handleSellInvestment = (id: string, soldAmount: number, targetPotId?: string) => {
+    const target = investments.find((i) => i.id === id);
+    if (!target) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const updated: Investment = {
+      ...target,
+      status: 'sold',
+      soldAmount,
+      currentAmount: soldAmount,
+      soldDate: todayStr,
+      updatedAt: new Date().toISOString(),
+    };
+    updateInvestments(investments.map((i) => (i.id === id ? updated : i)));
+
+    // Create income transaction
+    if (targetPotId) {
+      const newTrx: Transaction = {
+        id: `trx-${Date.now()}`,
+        type: 'income',
+        amount: soldAmount,
+        categoryPotId: targetPotId,
+        date: todayStr,
+        title: `Pencairan: ${target.name}`,
+        note: `Hasil penjualan instrumen ${target.type} (Modal: ${target.initialAmount})`,
+        createdAt: new Date().toISOString(),
+      };
+      updateTransactions([newTrx, ...transactions]);
+    }
+  };
+
   // Pots Handlers
   const handleAddPot = (newPotData: Omit<CategoryPot, 'id'>) => {
     const newPot: CategoryPot = {
@@ -311,6 +401,9 @@ export default function App() {
     return due < Date.now() || d.status === 'overdue';
   }).length;
 
+  // Active investments count
+  const activeInvestmentsCount = investments.filter((i) => i.status !== 'sold').length;
+
   return (
     <div className="min-h-screen pixel-bg text-slate-100 flex flex-col font-sans-clean">
       {/* 8-bit Header */}
@@ -328,6 +421,7 @@ export default function App() {
         overdueReceivablesCount={overdueCount}
         unpaidDebtsCount={unpaidDebtsCount}
         overdueDebtsCount={overdueDebtsCount}
+        investmentsCount={activeInvestmentsCount}
       />
 
       {/* Main Content Viewport */}
@@ -337,12 +431,16 @@ export default function App() {
             pots={pots}
             receivables={receivables}
             debts={debts}
+            investments={investments}
             transactions={transactions}
             onNavigateTab={setActiveTab}
             onOpenNewTransaction={() => {
               setSelectedPotForTrx(undefined);
               setActiveTab('transactions');
               setIsTrxModalOpen(true);
+            }}
+            onOpenNewInvestment={() => {
+              setActiveTab('investments');
             }}
             onOpenNewReceivable={() => {
               setActiveTab('receivables');
@@ -359,6 +457,18 @@ export default function App() {
             onPayDebt={(debt) => {
               setActiveTab('debts');
             }}
+          />
+        )}
+
+        {activeTab === 'investments' && (
+          <InvestmentsManager
+            investments={investments}
+            pots={pots}
+            onAddInvestment={handleAddInvestment}
+            onEditInvestment={handleEditInvestment}
+            onDeleteInvestment={handleDeleteInvestment}
+            onUpdateCurrentValue={handleUpdateInvestmentValuation}
+            onSellInvestment={handleSellInvestment}
           />
         )}
 
@@ -412,7 +522,7 @@ export default function App() {
       {/* Retro Footer */}
       <footer className="border-t-2 border-black/80 bg-[#0b1120] py-4 px-4 text-center text-xs text-slate-500 font-pixel">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>PIKSELKAS &bull; CATATAN KEUANGAN, OUTSTANDING PIUTANG & UTANG</span>
+          <span>PIKSELKAS &bull; CATATAN KEUANGAN, INVESTASI, PIUTANG & UTANG</span>
           <span className="text-amber-400/80">GAME OVER? TIDAK, KEUANGANMU AMAN! 🎮</span>
         </div>
       </footer>

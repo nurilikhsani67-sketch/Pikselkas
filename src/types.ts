@@ -4,6 +4,35 @@ export type ReceivableStatus = 'unpaid' | 'partial' | 'paid' | 'overdue';
 
 export type DebtStatus = 'unpaid' | 'partial' | 'paid' | 'overdue';
 
+export type InvestmentType = 
+  | 'saham'
+  | 'emas'
+  | 'obligasi'
+  | 'reksadana'
+  | 'kripto'
+  | 'deposito'
+  | 'properti'
+  | 'lainnya';
+
+export interface Investment {
+  id: string;
+  name: string; // misal "BBCA", "Logam Mulia Antam 10gr", "Obligasi ORI025"
+  type: InvestmentType; // jenis investasi yang dipilih
+  platform?: string; // misal "Bibit", "Ajaib", "Pegadaian", "BCA", dll.
+  buyDate: string; // YYYY-MM-DD
+  initialAmount: number; // Modal beli awal (Rp)
+  currentAmount: number; // Nilai / valuasi saat ini (Rp)
+  units?: number; // Jumlah unit (lembar/gram/lot/koin)
+  unitPrice?: number; // Harga beli per unit (Rp)
+  notes?: string; // Catatan strategi / deviden / target
+  categoryPotId?: string; // Pos anggaran terkait jika ada
+  status: 'active' | 'sold';
+  soldAmount?: number;
+  soldDate?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -76,6 +105,6 @@ export interface Debt {
   createdAt: string;
 }
 
-export type ActiveTab = 'dashboard' | 'receivables' | 'debts' | 'pots' | 'transactions';
+export type ActiveTab = 'dashboard' | 'receivables' | 'debts' | 'investments' | 'pots' | 'transactions';
 
 export type AuthMode = 'login' | 'register' | 'forgot_password';
